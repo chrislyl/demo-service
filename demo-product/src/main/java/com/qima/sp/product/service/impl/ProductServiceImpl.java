@@ -3,6 +3,7 @@ package com.qima.sp.product.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qima.sp.product.domain.Product;
+import com.qima.sp.product.domain.ProductAttribute;
 import com.qima.sp.product.mapper.CategoryMapper;
 import com.qima.sp.product.mapper.ProductAttributeMapper;
 import com.qima.sp.product.mapper.ProductMapper;
@@ -33,7 +34,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 .stream()
                 .peek(p -> {
                     p.setCategory(categoryMapper.selectById(p.getCategoryId()));
-                    p.setAttributes(productAttributeMapper.selectList(null));
+                    p.setAttributes(productAttributeMapper.selectList(
+                            Wrappers.<ProductAttribute>lambdaQuery().eq(ProductAttribute::getProductId, p.getId())));
                 })
                 .collect(Collectors.toList());
     }
