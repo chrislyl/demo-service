@@ -1,5 +1,49 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.qima.sp.product.mapper.ProductMapper">
 
+    <resultMap id="productDetailsMap" type="com.qima.sp.product.domain.Product">
+        <id column="p_id" property="id"/>
+        <result column="p_order_id" property="orderId"/>
+        <result column="p_category_id" property="categoryId"/>
+        <result column="p_name" property="name"/>
+        <result column="p_quantity" property="quantity"/>
+        <association property="category" javaType="com.qima.sp.product.domain.Category">
+            <id column="c_id" property="id"/>
+            <result column="c_name" property="name"/>
+            <result column="c_parent_id" property="parentId"/>
+            <result column="c_sort" property="sort"/>
+            <result column="c_status" property="status"/>
+        </association>
+        <collection property="attributes" ofType="com.qima.sp.product.domain.ProductAttribute">
+            <id column="pa_id" property="id"/>
+            <result column="pa_product_id" property="productId"/>
+            <result column="pa_attr_name" property="attrName"/>
+            <result column="pa_attr_value" property="attrValue"/>
+            <result column="pa_attr_sort" property="attrSort"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectByOrderId" resultMap="productDetailsMap">
+        select p.id          as p_id,
+               p.order_id    as p_order_id,
+               p.category_id as p_category_id,
+               p.name        as p_name,
+               p.quantity    as p_quantity,
+               c.id          as c_id,
+               c.parent_id   as c_parent_id,
+               c.name        as c_name,
+               c.sort        as c_sort,
+               c.status      as c_status,
+               pa.id         as pa_id,
+               pa.product_id as pa_product_id,
+               pa.attr_name  as pa_attr_name,
+               pa.attr_value as pa_attr_value,
+               pa.attr_sort  as pa_attr_sort
+        from t_product p
+                 left join t_category c on c.id = p.category_id
+                 left join t_product_attribute pa on p.id = pa.product_id
+        where p.order_id = #{orderId}
+    </select>
 </mapper>

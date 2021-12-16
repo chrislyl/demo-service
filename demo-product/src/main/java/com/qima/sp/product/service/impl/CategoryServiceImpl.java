@@ -9,7 +9,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Yulong
@@ -25,8 +28,33 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         return super.getById(id);
     }
 
+    /**
+     * Task 2:
+     * <ol>
+     * <li>test the usage of recursive</li>
+     * <li>Using lambda expression and stream proficiently</li>
+     * </ol>
+     */
     public List<Category> getTreeList() {
         // TODO: Task 2
-        return List.of();
+        // query all
+        List<Category> categories = this.baseMapper.selectList(null);
+        // filter out root-level(parentId=0) categories and recursively query sub-categories
+        return categories.stream()
+                .filter(c -> c.getParentId() == 0)
+                .peek(c -> c.setChildren(getChildren(c, categories)))
+                .sorted(Comparator.comparing(Category::getSort))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * recursive query
+     */
+    private List<Category> getChildren(Category category, List<Category> categories) {
+        return categories.stream()
+                .filter(c -> Objects.equals(c.getParentId(), category.getId()))
+                .peek(c -> c.setChildren(getChildren(c, categories)))
+                .sorted(Comparator.comparing(Category::getSort))
+                .collect(Collectors.toList());
     }
 }

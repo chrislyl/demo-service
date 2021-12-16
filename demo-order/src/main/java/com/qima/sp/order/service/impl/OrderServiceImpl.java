@@ -11,7 +11,10 @@ import com.qima.sp.order.mapper.OrderMapper;
 import com.qima.sp.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author chris
@@ -24,23 +27,48 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private final ProductFeignClient productFeignClient;
     private final InvoiceFeignClient invoiceFeignClient;
     private final PaymentFeignClient paymentFeignClient;
+    private final ThreadPoolTaskExecutor taskExecutor;
 
+    /**
+     * Task 3:
+     * <ol>
+     * <li>How to configure thread pool in SpringBoot, see {@link com.qima.sp.common.core.config.ThreadPoolConfig}</li>
+     * <li>How to use CompletableFuture</li>
+     * <li>Using lambda expression and stream proficiently</li>
+     * </ol>
+     */
     @Override
     public OrderVo orderDetails(Long orderId) {
         // TODO: Task 3
         OrderVo orderVo = new OrderVo();
-        // order info
-        Order order = this.getById(orderId);
-        BeanUtils.copyProperties(order, orderVo);
-        // product info
-        R r = productFeignClient.getDetailsByOrderId(orderId);
-        orderVo.setProducts(r.getData());
-        // invoice info
-        r = invoiceFeignClient.getById(order.getInvoiceId());
-        orderVo.setInvoice(r.getData());
-        // payment info
-        r = paymentFeignClient.getPaymentRecordsByOrderId(orderId);
-        orderVo.setPaymentRecords(r.getData());
+
+        CompletableFuture<Order> orderFuture = CompletableFuture.supplyAsync(() -> {
+            // order info
+            Order order = this.getById(orderId);
+            BeanUtils.copyProperties(order, orderVo);
+            return order;
+        }, taskExecutor);
+
+        CompletableFuture<Void> invoiceFuture = orderFuture.thenAcceptAsync((order) -> {
+            // invoice info
+            R r = invoiceFeignClient.getById(order.getInvoiceId());
+            orderVo.setInvoice(r.getData());
+        }, taskExecutor);
+
+        CompletableFuture<Void> productFuture = CompletableFuture.runAsync(() -> {
+            // product, category, product attribute
+            R r = productFeignClient.getDetailsByOrderId(orderId);
+            orderVo.setProducts(r.getData());
+        }, taskExecutor);
+
+        CompletableFuture<Void> paymentFuture = CompletableFuture.runAsync(() -> {
+            // payment info
+            R r = paymentFeignClient.getPaymentRecordsByOrderId(orderId);
+            orderVo.setPaymentRecords(r.getData());
+        }, taskExecutor);
+
+        CompletableFuture.allOf(invoiceFuture, productFuture, paymentFuture).join();
+
         return orderVo;
     }
 }
