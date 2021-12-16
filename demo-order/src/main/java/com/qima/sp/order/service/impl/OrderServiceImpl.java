@@ -1,6 +1,7 @@
 package com.qima.sp.order.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.base.Stopwatch;
 import com.qima.sp.common.utils.R;
 import com.qima.sp.order.domain.Order;
 import com.qima.sp.order.domain.vo.OrderVo;
@@ -10,16 +11,19 @@ import com.qima.sp.order.feign.ProductFeignClient;
 import com.qima.sp.order.mapper.OrderMapper;
 import com.qima.sp.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chris
  * @date 2021/12/12 19:47
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
@@ -39,6 +43,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      */
     @Override
     public OrderVo orderDetails(Long orderId) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
         // TODO: Task 3
         OrderVo orderVo = new OrderVo();
 
@@ -68,6 +74,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         }, taskExecutor);
 
         CompletableFuture.allOf(invoiceFuture, productFuture, paymentFuture).join();
+
+        log.debug("query order details time spent {}s", stopwatch.elapsed(TimeUnit.SECONDS));
 
         return orderVo;
     }

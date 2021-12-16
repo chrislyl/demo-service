@@ -7,6 +7,7 @@ import com.qima.sp.product.mapper.ProductAttributeMapper;
 import com.qima.sp.product.mapper.ProductMapper;
 import com.qima.sp.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
  * @author chris
  * @date 2021/12/11 1:36
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> implements ProductService {
@@ -41,6 +43,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 //                    p.setAttributes(productAttributeMapper.selectList(null));
 //                })
 //                .collect(Collectors.toList());
+        try {
+            // simulate business time spent
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            log.debug(e.getMessage(), e);
+        }
         return this.baseMapper.selectByOrderId(orderId);
     }
 }
