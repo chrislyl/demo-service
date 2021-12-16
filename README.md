@@ -104,7 +104,7 @@ Now our data are built based on these domains:
 Here are the tasks to achieve requirements.
 
 ##### 1. [ProductServiceImpl#getByOrderId](demo-product/src/main/java/com/qima/sp/product/service/impl/ProductServiceImpl.java)
-optimize this business service method to improve query efficiency
+optimize code to improve query efficiency, require one SQL to query the data of all related tables
 
 ##### 2. [CategoryServiceImpl#getTreeList](demo-product/src/main/java/com/qima/sp/product/service/impl/CategoryServiceImpl.java)
 implement feature to query all the product category, **Note: the result must be a tree list**  
@@ -305,4 +305,4 @@ here is a sample json result
 ```
 
 ##### 3. [OrderServiceImpl#orderDetails](demo-order/src/main/java/com/qima/sp/order/service/impl/OrderServiceImpl.java)
-Use thread pools and asynchronous orchestration to optimize this business query
+use thread pools and asynchronous orchestration to optimize microservice calls to reduce business time spent

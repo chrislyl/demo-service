@@ -27,7 +27,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public List<Product> getByOrderId(Long orderId) {
         // TODO: Task 1
-        // optimize this implementation to improve query efficiency
+        // optimize code to improve query efficiency
+        // require one SQL to query the data of all related tables
         return this.baseMapper.selectList(Wrappers.<Product>lambdaQuery().eq(Product::getOrderId, orderId))
                 .stream()
                 .peek(p -> {
